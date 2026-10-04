@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="tk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owaz - Smooth Premium Lyrics & Neon Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #020813;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 🔮 Hakyky Ritm Bilen Hereket Edýän Neon Toplary */
+        .neon-bg-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; z-index: -2; pointer-events: none;
+            background: radial-gradient(circle at center, #0a192f 0%, #020813 100%);
+        }
+
+        .neon-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.6;
+            transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .orb-1 { width: 320px; height: 320px; background: #fa233b; top: 15%; left: 15%; }
+        .orb-2 { width: 380px; height: 380px; background: #00f0ff; bottom: 10%; right: 10%; }
+        .orb-3 { width: 280px; height: 280px; background: #7000ff; top: 45%; left: 55%; }
+
+        .video-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 8, 19, 0.45);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* Çep Menýu */
+        .left-icon-sidebar {
+            width: 70px; backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 24px;
+            z-index: 20; background: rgba(1, 10, 20, 0.4); border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .sidebar-logo-icon {
+            width: 38px; height: 38px; background: linear-gradient(135deg, #fa233b, #fb5570);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; box-shadow: 0 4px 12px rgba(250, 35, 59, 0.4); cursor: pointer; color: #fff;
+        }
+        .sidebar-nav-icons { display: flex; flex-direction: column; gap: 18px; align-items: center; flex: 1; }
+        .side-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; font-size: 18px; cursor: pointer; transition: all 0.2s;
+        }
+        .side-icon:hover, .side-icon.active { background: rgba(250, 35, 59, 0.15); color: #fa233b; }
+
+        .layout-container {
+            flex: 1; display: flex; height: 100vh; overflow: hidden; position: relative; z-index: 5;
+        }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+        
+        .top-header-bar {
+            height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            backdrop-filter: blur(12px); z-index: 10; background: rgba(1, 10, 20, 0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .search-box-wrapper {
+            display: flex; align-items: center; border-radius: 20px; padding: 8px 16px; width: 260px; gap: 10px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .search-box-wrapper input { background: transparent; border: none; outline: none; font-size: 13px; width: 100%; color: #fff; }
+        .top-nav-right { display: flex; align-items: center; gap: 15px; }
+        .header-btn {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 7px 18px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #fff;
+        }
+        .header-btn:hover { opacity: 0.8; }
+        .header-btn.primary { background: linear-gradient(135deg, #fa233b, #fb5570); color: #fff; border: none; box-shadow: 0 4px 15px rgba(250, 35, 59, 0.4); }
+
+        .content-scroll-area {
+            flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 25px; padding-bottom: 90px;
+        }
+        .content-scroll-area::-webkit-scrollbar { width: 6px; }
+        .content-scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+        .banner-hero {
+            background: linear-gradient(135deg, rgba(20, 5, 30, 0.8), rgba(5, 12, 30, 0.9));
+            border-radius: 20px; padding: 30px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(0, 240, 255, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        }
+        .banner-left h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; color: #00f0ff; text-shadow: 0 0 10px rgba(0,240,255,0.4); }
+        .banner-left p { font-size: 12px; color: #94a3b8; max-width: 380px; line-height: 1.4; margin-bottom: 15px; }
+        .banner-actions { display: flex; gap: 10px; }
+        .banner-btn { padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-listen { background: linear-gradient(135deg, #00f0ff, #0077ff); color: #000; font-weight: 700; box-shadow: 0 4px 15px rgba(0,240,255,0.4); }
+        .btn-add-album { background: rgba(255, 255, 255, 0.1); color: inherit; border: 1px solid rgba(255, 255, 255, 0.15); }
+
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; }
+        .music-card {
+            border-radius: 14px; padding: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(8px);
+            background: rgba(1, 20, 35, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .music-card:hover { transform: translateY(-4px); border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 5px 15px rgba(0,240,255,0.15); }
+        .card-img-box { width: 100%; height: 130px; border-radius: 10px; overflow: hidden; background: #011424; position: relative; }
+        .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .card-info h4 { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-info p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+        /* 📱 SAG TARAPDAK IPHONE 17 PRO MAX (FLIP PANEL & SMOOTH LYRICS) */
+        .iphone-sidebar-panel {
+            width: 330px; background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(25px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 15px;
+            perspective: 1200px;
+        }
+
+        .iphone-frame {
+            width: 290px; height: 580px; background: #e5e5ea;
+            border: 10px solid #d1d1d6; border-radius: 46px; position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; padding: 12px 14px;
+            overflow: hidden;
+        }
+
+        .iphone-frame.flipped { transform: rotateY(180deg); }
+
+        .phone-face {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; padding: 12px 14px;
+        }
+
+        /* 📸 TELEFONUN ARKASYNDA GÖNI KAMERA PROGRAMMASY */
+        .phone-back {
+            transform: rotateY(180deg);
+            background: #000000;
+            justify-content: space-between;
+            padding: 12px 8px;
+        }
+
+        .cam-app-header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; color: #fff; z-index: 10;
+        }
+        .cam-app-title { font-size: 12px; font-weight: 600; color: #ffcc00; }
+        .flip-back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 600; cursor: pointer;
+        }
+
+        .camera-app-viewfinder {
+            width: 100%; flex: 1; background: #111; border-radius: 16px; overflow: hidden;
+            position: relative; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;
+            margin: 6px 0;
+        }
+        #webcamVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        .cam-app-controls {
+            display: flex; align-items: center; justify-content: space-around; width: 100%; padding: 6px 0;
+        }
+        .snap-btn {
+            width: 52px; height: 52px; background: #fff; border-radius: 50%; border: 4px solid #fa233b;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(250,35,59,0.7);
+        }
+        .snap-btn:active { transform: scale(0.9); }
+
+        /* 📱 Öň Tarapdaky Apple Music we Ýumşajyk (Smooth) Aýdym Sözleri */
+        .iphone-dynamic-island {
+            width: 95px; height: 24px; background: #000; border-radius: 14px;
+            position: absolute; top: 10px; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 8px;
+        }
+        .island-cam { width: 9px; height: 9px; background: #111; border-radius: 50%; border: 1px solid #333; }
+        .island-indicator { width: 6px; height: 6px; background: #00f0ff; border-radius: 50%; animation: pulseIsland 1.5s infinite; }
+        @keyframes pulseIsland { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        .apple-music-screen {
+            width: 100%; height: 100%; margin-top: 25px; display: flex; flex-direction: column; justify-content: space-between; z-index: 10;
+        }
+
+        .am-header { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 4px; }
+        .am-app-title { font-size: 13px; font-weight: 700; color: #00f0ff; }
+        .am-top-btns { display: flex; gap: 5px; }
+        .am-flip-toggle-btn, .am-lyrics-toggle-btn { background: rgba(0, 240, 255, 0.15); border: 1px solid rgba(0,240,255,0.3); color: #00f0ff; padding: 4px 8px; border-radius: 8px; font-size: 9px; font-weight: bold; cursor: pointer; }
+
+        /* 🎤 Ýumşak we Süýşýän Aýdym Sözleri Kutusy */
+        .lyrics-box {
+            width: 100%; flex: 1; background: rgba(0,0,0,0.65); border-radius: 14px; margin: 6px 0; padding: 18px 12px;
+            overflow-y: auto; scroll-behavior: smooth; display: none; flex-direction: column; gap: 16px; text-align: center; border: 1px solid rgba(0,240,255,0.2);
+        }
+        .lyrics-box::-webkit-scrollbar { width: 3px; }
+        .lyrics-box::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 3px; }
+        
+        .lyric-line {
+            font-size: 12px;
+            color: #718096;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .lyric-line.active {
+            font-size: 15px;
+            font-weight: 700;
+            color: #00f0ff;
+            text-shadow: 0 0 14px rgba(0,240,255,0.8);
+            transform: scale(1.08);
+        }
+
+        .am-artwork-container {
+            width: 100%; aspect-ratio: 1; border-radius: 16px; overflow: hidden; position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7); background: #111; border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .am-artwork-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .am-song-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 4px 0; }
+        .am-titles h3 { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; color: #fff; }
+        .am-titles p { font-size: 10px; color: #8e8e93; margin-top: 2px; }
+
+        .am-progress-box { width: 100%; }
+        .am-slider { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; position: relative; overflow: hidden; }
+        .am-slider-fill { width: 0%; height: 100%; background: #00f0ff; border-radius: 2px; transition: width 0.1s linear; }
+        .am-time-info { display: flex; justify-content: space-between; font-size: 9px; color: #8e8e93; margin-top: 4px; font-weight: 500; }
+
+        .am-controls { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 10px; margin-bottom: 4px; }
+        .am-ctrl-btn { background: none; border: none; color: #ffffff; font-size: 18px; cursor: pointer; transition: 0.2s; }
+        .am-ctrl-btn:hover { color: #00f0ff; transform: scale(1.1); }
+        .am-ctrl-btn.play-pause { font-size: 24px; }
+
+        .am-bottom-volume { display: flex; align-items: center; gap: 8px; width: 100%; background: rgba(255,255,255,0.06); padding: 5px 12px; border-radius: 12px; }
+        .am-bottom-volume span { font-size: 10px; color: #8e8e93; }
+        .am-bottom-volume input { flex: 1; accent-color: #00f0ff; cursor: pointer; height: 3px; }
+
+        /* Aşaky Player Bar */
+        .player-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 75px; backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 25px; z-index: 30; box-shadow: 0 -5px 25px rgba(0,0,0,0.8);
+            background: rgba(1, 10, 20, 0.85); border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .player-left-info { display: flex; align-items: center; gap: 12px; width: 25%; cursor: pointer; }
+        .player-left-thumb { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; background: #011424; }
+        .player-left-text h4 { font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .player-left-text p { font-size: 10px; color: #94a3b8; }
+        .player-center { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 40%; max-width: 450px; }
+        .controls-icons { display: flex; align-items: center; gap: 15px; }
+        .ctrl-btn { background: none; border: none; color: #94a3b8; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .ctrl-btn:hover { color: #fff; transform: scale(1.15); }
+        .play-pause-bar-btn {
+            width: 32px; height: 32px; background: #00f0ff; color: #000; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
+        }
+        .play-pause-bar-btn:hover { background: #fff; transform: scale(1.1); }
+        .progress-bar-wrapper { display: flex; align-items: center; gap: 8px; width: 100%; font-size: 10px; color: #94a3b8; }
+        .progress-bar { flex: 1; height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; cursor: pointer; position: relative; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #00f0ff, #7000ff); border-radius: 2px; }
+        .player-right { width: 25%; display: flex; align-items: center; justify-content: flex-end; gap: 12px; font-size: 10px; color: #94a3b8; }
+        .effect-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .player-right input[type="range"] { accent-color: #00f0ff; cursor: pointer; width: 60px; }
+
+        /* Goşmak Modaly */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: #011424; padding: 30px; border-radius: 18px; width: 400px; display: flex; flex-direction: column; gap: 14px; border: 1px solid rgba(0, 240, 255, 0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.9); color: #fff; }
+        .modal-box h3 { font-size: 20px; font-weight: 700; text-align: center; color: #00f0ff; }
+        .modal-input { width: 100%; padding: 11px 14px; background: #032138; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: white; font-size: 13px; outline: none; }
+        .modal-input:focus { border-color: #00f0ff; }
+        .file-label { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .modal-buttons { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; }
+        .modal-btn { flex: 1; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
+        .btn-cancel { background: rgba(255,255,255,0.06); color: #94a3b8; }
+        .btn-cancel:hover { color: #fff; }
+        .btn-save { background: linear-gradient(135deg, #00f0ff, #0077ff); color: #000; }
+    </style>
+</head>
+<body id="mainBody">
+
+    <!-- 🔮 Hakyky Ritm Bilen Hereket Edýän Neon Toplary -->
+    <div class="neon-bg-container">
+        <div class="neon-orb orb-1" id="neonOrb1"></div>
+        <div class="neon-orb orb-2" id="neonOrb2"></div>
+        <div class="neon-orb orb-3" id="neonOrb3"></div>
+    </div>
+    <div class="video-overlay"></div>
+
+    <div class="layout-container">
+        <!-- Çep Menýu -->
+        <div class="left-icon-sidebar">
+            <div class="sidebar-logo-icon">🎵</div>
+            <div class="sidebar-nav-icons">
+                <div class="side-icon active" title="Baş Sahypa">🏠</div>
+                <div class="side-icon" title="Täze Aýdym Goş" onclick="openModal('addModal')">➕</div>
+                <div class="side-icon" title="Kamera Programmasyny Aç" onclick="togglePhoneFlip()">📷</div>
+            </div>
+        </div>
+
+        <!-- Esasy Sahypa -->
+        <div class="main-wrapper">
+            <div class="top-header-bar">
+                <div class="search-box-wrapper">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Aýdym, artist ýa-da albom gözle...">
+                </div>
+                <div class="top-nav-right">
+                    <button class="header-btn" onclick="openModal('addModal')">➕ Aýdym Goş</button>
+                    <button class="header-btn primary" onclick="togglePhoneFlip()">📷 Kamera Aç</button>
+                </div>
+            </div>
+
+            <div class="content-scroll-area">
+                <div class="banner-hero">
+                    <div class="banner-left">
+                        <p style="font-size: 10px; font-weight: 700; color: #00f0ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Smooth Premium Lyrics & Visualizer</p>
+                        <h2>Neon orbs pulsing smoothly with your audio beats!</h2>
+                        <p>Enjoy seamless lyrical transitions and your securely saved personal playlist.</p>
+                        <div class="banner-actions">
+                            <button class="banner-btn btn-listen" onclick="togglePhoneFlip()">Kamerany Aç</button>
+                            <button class="banner-btn btn-add-album" onclick="selectAndPlaySong(0)">Aýdym Diňle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="section-title">
+                        <span>Saýlananlar we Goşulan Aýdymlar (Playlist)</span>
+                    </div>
+                    <div class="cards-grid" id="playlistCardsGrid"></div>
+                </div>
+            </div>
+
+            <!-- Aşaky Player Bar -->
+            <div class="player-bar">
+                <div class="player-left-info" onclick="togglePlay()">
+                    <img id="barThumb" src="" style="display: none;" class="player-left-thumb">
+                    <div id="barThumbPlaceholder" class="player-left-thumb" style="display: flex; align-items: center; justify-content: center; font-size: 16px; color: #777;">🎵</div>
+                    <div class="player-left-text">
+                        <h4 id="barTitle">Aýdym saýlaň</h4>
+                        <p id="barArtist">Artist</p>
+                    </div>
+                </div>
+
+                <div class="player-center">
+                    <div class="controls-icons">
+                        <button class="ctrl-btn" onclick="prevSong()">⏮</button>
+                        <button class="play-pause-bar-btn" id="playBtn" onclick="togglePlay()">▶</button>
+                        <button class="ctrl-btn" onclick="nextSong()">⏭</button>
+                    </div>
+                    <div class="progress-bar-wrapper">
+                        <span id="currentTime">0:00</span>
+                        <div class="progress-bar" onclick="setProgress(event)">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span id="duration">0:00</span>
+                    </div>
+                </div>
+
+                <div class="player-right">
+                    <div class="effect-group">
+                        <span>🔊 Bass</span>
+                        <input type="range" min="0" max="25" step="1" value="0" oninput="changeBass(this.value)">
+                    </div>
+                    <div class="effect-group">
+                        <span>🌊 Eho</span>
+                        <input type="range" min="0" max="1" step="0.05" value="0" oninput="changeEcho(this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📱 SAG TARAPDAK IPHONE 17 PRO MAX (FLIP PANEL & SMOOTH LYRICS) -->
+        <div class="iphone-sidebar-panel">
+            <div class="iphone-frame" id="iphoneFrameContainer">
+                
+                <!-- ÖŇ TARAPY (Apple Music & Smooth Lyrics) -->
+                <div class="phone-face">
+                    <div class="iphone-dynamic-island">
+                        <div class="island-cam"></div>
+                        <div class="island-indicator"></div>
+                    </div>
+
+                    <div class="apple-music-screen">
+                        <div class="am-header">
+                            <div class="am-app-title"> Music</div>
+                            <div class="am-top-btns">
+                                <button class="am-lyrics-toggle-btn" id="lyricsToggleBtn" onclick="toggleLyricsView()">🎤 Sözler</button>
+                                <button class="am-flip-toggle-btn" onclick="togglePhoneFlip()">📷 Kamera</button>
+                            </div>
+                        </div>
+
+                        <!-- Ýumşak Aýdym Sözleri Kutusy -->
+                        <div class="lyrics-box" id="lyricsContainer"></div>
+
+                        <!-- Album Cover Art -->
+                        <div class="am-artwork-container" id="artworkContainer">
+                            <img id="iphoneThumb" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80">
+                        </div>
+
+                        <div class="am-song-meta">
+                            <div class="am-titles">
+                                <h3 id="iphoneTitle">Group Name</h3>
+                                <p id="iphoneArtist">Ava Contiah</p>
+                            </div>
+                        </div>
+
+                        <div class="am-progress-box">
+                            <div class="am-slider" onclick="setProgress(event)">
+                                <div class="am-slider-fill" id="iphoneProgressFill"></div>
+                            </div>
+                            <div class="am-time-info">
+                                <span id="iphoneCurrentTime">0:00</span>
+                                <span id="iphoneDuration">3:45</span>
+                            </div>
+                        </div>
+
+                        <div class="am-controls">
+                            <button class="am-ctrl-btn" onclick="prevSong()">⏮</button>
+                            <button class="am-ctrl-btn play-pause" id="iphonePlayBtn" onclick="togglePlay()">▶</button>
+                            <button class="am-ctrl-btn" onclick="nextSong()">⏭</button>
+                        </div>
+
+                        <div class="am-bottom-volume">
+                            <span>🔈</span>
+                            <input type="range" min="0" max="1" step="0.05" value="0.8" oninput="audio.volume = this.value">
+                            <span>🔊</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ARKA TARAPY (GÖNI KAMERA PROGRAMMASY) -->
+                <div class="phone-face phone-back">
+                    <div class="cam-app-header">
+                        <span class="cam-app-title">📸 Kamera App</span>
+                        <button class="flip-back-btn" onclick="togglePhoneFlip()">↩ Çykmak</button>
+                    </div>
+
+                    <div class="camera-app-viewfinder">
+                        <video id="webcamVideo" autoplay playsinline></video>
+                    </div>
+
+                    <div class="cam-app-controls">
+                        <button class="flip-back-btn" onclick="togglePhoneFlip()">Ýapyk</button>
+                        <button class="snap-btn" onclick="takeSnapshot()"></button>
+                        <span style="font-size: 10px; color: #aaa;">HDR 4K</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Goşmak Modaly -->
+    <div class="modal" id="addModal">
+        <div class="modal-box">
+            <h3>Täze Aýdym Goş</h3>
+            <input type="text" id="newTitle" class="modal-input" placeholder="Aýdymyň ady">
+            <input type="text" id="newArtist" class="modal-input" placeholder="Artist ady">
+            <textarea id="newLyrics" class="modal-input" placeholder="Aýdym sözlerini setir-setir ýazyň..." rows="4" style="resize:none;"></textarea>
+            <div class="file-label">MP3 faýly:</div>
+            <input type="file" id="audioFileInput" class="modal-input" accept="audio/mp3,audio/*">
+            <div class="file-label">Surat:</div>
+            <input type="file" id="imageFileInput" class="modal-input" accept="image/*">
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('addModal')">Ýatyr</button>
+                <button class="modal-btn btn-save" onclick="addNewSong()">Goş</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" crossorigin="anonymous" ontimeupdate="updateProgress()" onended="nextSong()"></audio>
+
+    <script>
+        let songs = [
+            { 
+                title: "Group Name", 
+                artist: "Ava Contiah & Brian Hill", 
+                src: "", 
+                thumb: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
+                lyrics: [
+                    "We walk together through the night",
+                    "Underneath the neon flashing light",
+                    "Every beat is taking control",
+                    "Rhythm flowing deep in my soul",
+                    "Hold on tight, never let go now",
+                    "We're shining brighter somehow"
+                ]
+            },
+            { 
+                title: "Walking Promises", 
+                artist: "Ava Contiah", 
+                src: "", 
+                thumb: "https://images.unsplash.com/photo-1526478806334-5fd488fcaabc?auto=format&fit=crop&w=600&q=80",
+                lyrics: [
+                    "Promises made in the fading sun",
+                    "Looking back at what we've begun",
+                    "Every step is a new release",
+                    "Finding courage, finding peace",
+                    "Nothing can stop us here today"
+                ]
+            },
+            { 
+                title: "Gimme Some Courage", 
+                artist: "Brian Hill", 
+                src: "", 
+                thumb: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=600&q=80",
+                lyrics: [
+                    "Give me some courage to face the dark",
+                    "Ignite inside a powerful spark",
+                    "We rise above the stormy sea",
+                    "Wild and free eternally",
+                    "Hear the music calling our name"
+                ]
+            }
+        ];
+        let currentIndex = 0;
+        let showLyrics = false;
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const iphonePlayBtn = document.getElementById('iphonePlayBtn');
+        const progressFill = document.getElementById('progressFill');
+        const iphoneProgressFill = document.getElementById('iphoneProgressFill');
+        let isFlipped = false;
+        let webcamStream = null;
+
+        // 🔮 Web Audio API Visualizer
+        let audioCtx, analyser, dataArray, sourceNode;
+        let isAudioInit = false;
+
+        function initAudioVisualizer() {
+            if (isAudioInit) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                sourceNode = audioCtx.createMediaElementSource(audio);
+                sourceNode.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                analyser.fftSize = 64;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                isAudioInit = true;
+                animateNeonOrbs();
+            } catch(e) {
+                console.log("Audio API error:", e);
+            }
+        }
+
+        function animateNeonOrbs() {
+            if (analyser && !audio.paused) {
+                analyser.getByteFrequencyData(dataArray);
+                let avg = 0;
+                for(let i = 0; i < dataArray.length; i++) {
+                    avg += dataArray[i];
+                }
+                avg = avg / dataArray.length;
+
+                let scaleVal = 1 + (avg / 45);
+                let orb1 = document.getElementById('neonOrb1');
+                let orb2 = document.getElementById('neonOrb2');
+                let orb3 = document.getElementById('neonOrb3');
+
+                if(orb1 && orb2 && orb3) {
+                    orb1.style.transform = `scale(${scaleVal})`;
+                    orb2.style.transform = `scale(${scaleVal * 0.95})`;
+                    orb3.style.transform = `scale(${scaleVal * 1.08})`;
+                }
+            }
+            requestAnimationFrame(animateNeonOrbs);
+        }
+
+        function loadDashboardUI() {
+            const grid = document.getElementById('playlistCardsGrid');
+            grid.innerHTML = '';
+            songs.forEach((song, index) => {
+                grid.innerHTML += `
+                    <div class="music-card" onclick="selectAndPlaySong(${index})">
+                        <div class="card-img-box">
+                            <img src="${song.thumb}">
+                        </div>
+                        <div class="card-info">
+                            <h4>${song.title}</h4>
+                            <p>${song.artist}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleLyricsView() {
+            showLyrics = !showLyrics;
+            const lyricsBox = document.getElementById('lyricsContainer');
+            const artwork = document.getElementById('artworkContainer');
+            const btn = document.getElementById('lyricsToggleBtn');
+
+            if (showLyrics) {
+                lyricsBox.style.display = 'flex';
+                artwork.style.display = 'none';
+                btn.style.background = 'rgba(0, 240, 255, 0.4)';
+                renderLyrics();
+            } else {
+                lyricsBox.style.display = 'none';
+                artwork.style.display = 'block';
+                btn.style.background = 'rgba(0, 240, 255, 0.15)';
+            }
+        }
+
+        function renderLyrics() {
+            const lyricsBox = document.getElementById('lyricsContainer');
+            const song = songs[currentIndex];
+            lyricsBox.innerHTML = '';
+            if (song.lyrics && song.lyrics.length > 0) {
+                song.lyrics.forEach((line, idx) => {
+                    lyricsBox.innerHTML += `<div class="lyric-line" id="lyric-${idx}">${line}</div>`;
+                });
+            } else {
+                lyricsBox.innerHTML = `<div class="lyric-line active">Bu aýdym üçin söz ýok.</div>`;
+            }
+        }
+
+        function updateActiveLyric() {
+            if (!showLyrics || !audio.duration) return;
+            const song = songs[currentIndex];
+            if (!song.lyrics || song.lyrics.length === 0) return;
+
+            const progressRatio = audio.currentTime / audio.duration;
+            const activeIdx = Math.floor(progressRatio * song.lyrics.length);
+
+            song.lyrics.forEach((_, idx) => {
+                const el = document.getElementById(`lyric-${idx}`);
+                if (el) {
+                    if (idx === activeIdx) {
+                        el.classList.add('active');
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        el.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function togglePhoneFlip() {
+            const frame = document.getElementById('iphoneFrameContainer');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                frame.classList.add('flipped');
+                startWebcam();
+            } else {
+                frame.classList.remove('flipped');
+                stopWebcam();
+            }
+        }
+
+        function startWebcam() {
+            const videoEl = document.getElementById('webcamVideo');
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => {
+                    webcamStream = stream;
+                    videoEl.srcObject = stream;
+                })
+                .catch(err => {
+                    console.log("Kamera rugsat berilmedi: ", err);
+                    alert("Kamerany ulanmak üçin brauzere rugsat bermeli!");
+                });
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+            }
+        }
+
+        function takeSnapshot() {
+            const videoEl = document.getElementById('webcamVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = videoEl.videoWidth || 640;
+            canvas.height = videoEl.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            songs.push({
+                title: "Kamera Suraty " + (songs.length + 1),
+                artist: "iPhone 17 Pro Max",
+                src: "",
+                thumb: dataUrl,
+                lyrics: ["Kamera suraty üçin aýdym sözleri ýok."]
+            });
+            loadDashboardUI();
+            alert("Surat düşüldi we saýlananlar sanawyna goşuldy!");
+            togglePhoneFlip();
+        }
+
+        function selectAndPlaySong(index) {
+            currentIndex = index;
+            selectSong(index);
+            togglePlay();
+        }
+
+        function selectSong(index) {
+            if (songs.length === 0) return;
+            currentIndex = index;
+            
+            document.getElementById('barTitle').innerText = songs[index].title;
+            document.getElementById('barArtist').innerText = songs[index].artist;
+            document.getElementById('iphoneTitle').innerText = songs[index].title;
+            document.getElementById('iphoneArtist').innerText = songs[index].artist;
+
+            const barThumb = document.getElementById('barThumb');
+            const barThumbPlaceholder = document.getElementById('barThumbPlaceholder');
+            const iphoneThumb = document.getElementById('iphoneThumb');
+
+            if (songs[index].thumb) {
+                barThumb.src = songs[index].thumb;
+                barThumb.style.display = 'block';
+                barThumbPlaceholder.style.display = 'none';
+                iphoneThumb.src = songs[index].thumb;
+            }
+
+            if (songs[index].src) {
+                audio.src = songs[index].src;
+            }
+
+            if (showLyrics) {
+                renderLyrics();
+            }
+        }
+
+        function togglePlay() {
+            if (songs.length === 0) return;
+            if (!audio.src && songs[currentIndex].src) {
+                audio.src = songs[currentIndex].src;
+            }
+
+            initAudioVisualizer();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (audio.paused && audio.src) {
+                audio.play().catch(e => console.log(e));
+                playBtn.innerText = "❚❚";
+                iphonePlayBtn.innerText = "❚❚";
+            } else {
+                audio.pause();
+                playBtn.innerText = "▶";
+                iphonePlayBtn.innerText = "▶";
+            }
+        }
+
+        function nextSong() {
+            if (songs.length === 0) return;
+            currentIndex = (currentIndex + 1) % songs.length;
+            selectSong(currentIndex);
+            audio.play().catch(e => console.log(e));
+            playBtn.innerText = "❚❚";
+            iphonePlayBtn.innerText = "❚❚";
+        }
+
+        function prevSong() {
+            if (songs.length === 0) return;
+            currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+            selectSong(currentIndex);
+            audio.play().catch(e => console.log(e));
+            playBtn.innerText = "❚❚";
+            iphonePlayBtn.innerText = "❚❚";
+        }
+
+        function updateProgress() {
+            if (audio.duration) {
+                const currentTime = audio.currentTime;
+                const percent = (currentTime / audio.duration) * 100;
+                progressFill.style.width = percent + '%';
+                iphoneProgressFill.style.width = percent + '%';
+
+                let curM = Math.floor(currentTime / 60);
+                let curS = Math.floor(currentTime % 60);
+                if (curS < 10) curS = "0" + curS;
+                const timeStr = `${curM}:${curS}`;
+                document.getElementById('currentTime').innerText = timeStr;
+                document.getElementById('iphoneCurrentTime').innerText = timeStr;
+
+                let durM = Math.floor(audio.duration / 60);
+                let durS = Math.floor(audio.duration % 60);
+                if (durS < 10) durS = "0" + durS;
+                const durStr = `${durM}:${durS}`;
+                document.getElementById('duration').innerText = durStr;
+                document.getElementById('iphoneDuration').innerText = durStr;
+
+                updateActiveLyric();
+            }
+        }
+
+        function setProgress(e) {
+            const width = e.currentTarget.clientWidth;
+            const clickX = e.offsetX;
+            if(audio.duration) {
+                audio.currentTime = (clickX / width) * audio.duration;
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function addNewSong() {
+            const title = document.getElementById('newTitle').value.trim();
+            const artist = document.getElementById('newArtist').value.trim();
+            const rawLyrics = document.getElementById('newLyrics').value.trim();
+            const audioFile = document.getElementById('audioFileInput').files[0];
+            const imageFile = document.getElementById('imageFileInput').files[0];
+
+            if (!audioFile) {
+                alert("MP3 faýlyny saýlaň!");
+                return;
+            }
+
+            const parsedLyrics = rawLyrics ? rawLyrics.split('\n') : ["Aýdym sözleri ýazylmady."];
+
+            songs.push({
+                title: title || audioFile.name.replace(/\.[^/.]+$/, ""),
+                artist: artist || "Nätanyş",
+                src: URL.createObjectURL(audioFile),
+                thumb: imageFile ? URL.createObjectURL(imageFile) : "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
+                lyrics: parsedLyrics
+            });
+
+            closeModal('addModal');
+            loadDashboardUI();
+            selectAndPlaySong(songs.length - 1);
+        }
+
+        loadDashboardUI();
+    </script>
+</body>
+</html>
